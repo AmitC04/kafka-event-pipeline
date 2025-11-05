@@ -1,0 +1,13 @@
+### Health Check
+GET http://localhost:5000/health
+
+### Get User with Recent Orders (replace with actual user ID from logs)
+GET http://localhost:5000/users/user-12345678-1234-1234-1234-123456789012
+
+### Get Order with Payment Status (replace with actual order ID from logs)
+GET http://localhost:5000/orders/order-12345678-1234-1234-1234-123456789012
+
+### Check DLQ in Redis (use redis-cli)
+# docker exec -it <redis-container-id> redis-cli
+# LRANGE dlq:events 0 -1
+# LLEN dlq:events

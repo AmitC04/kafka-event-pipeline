@@ -1,0 +1,49 @@
+CREATE DATABASE EventStore;
+GO
+
+USE EventStore;
+GO
+
+CREATE TABLE Users (
+    UserId NVARCHAR(100) PRIMARY KEY,
+    Email NVARCHAR(255) NOT NULL,
+    Name NVARCHAR(255) NOT NULL,
+    CreatedAt DATETIME2 NOT NULL,
+    EventId NVARCHAR(100) NOT NULL UNIQUE
+);
+GO
+
+CREATE TABLE Orders (
+    OrderId NVARCHAR(100) PRIMARY KEY,
+    UserId NVARCHAR(100) NOT NULL,
+    Amount DECIMAL(18,2) NOT NULL,
+    Status NVARCHAR(50) NOT NULL,
+    PlacedAt DATETIME2 NOT NULL,
+    EventId NVARCHAR(100) NOT NULL UNIQUE,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId)
+);
+GO
+
+CREATE TABLE Payments (
+    PaymentId NVARCHAR(100) PRIMARY KEY,
+    OrderId NVARCHAR(100) NOT NULL,
+    Amount DECIMAL(18,2) NOT NULL,
+    Status NVARCHAR(50) NOT NULL,
+    SettledAt DATETIME2 NOT NULL,
+    EventId NVARCHAR(100) NOT NULL UNIQUE,
+    FOREIGN KEY (OrderId) REFERENCES Orders(OrderId)
+);
+GO
+
+CREATE TABLE Inventory (
+    Sku NVARCHAR(100) PRIMARY KEY,
+    Quantity INT NOT NULL,
+    LastAdjustedAt DATETIME2 NOT NULL,
+    EventId NVARCHAR(100) NOT NULL
+);
+GO
+
+CREATE INDEX IX_Orders_UserId ON Orders(UserId);
+CREATE INDEX IX_Orders_PlacedAt ON Orders(PlacedAt DESC);
+CREATE INDEX IX_Payments_OrderId ON Payments(OrderId);
+GO

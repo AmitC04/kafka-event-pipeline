@@ -249,6 +249,21 @@ static async Task InitializeDatabase(string connStr)
     {
         try
         {
+            // First, connect to master to create database if it doesn't exist
+            var masterConnStr = connStr.Replace("Database=EventStore", "Database=master");
+            await using var masterConn = new SqlConnection(masterConnStr);
+            await masterConn.OpenAsync();
+            
+            var createDbCmd = new SqlCommand(@"
+                IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'EventStore')
+                BEGIN
+                    CREATE DATABASE EventStore;
+                END
+            ", masterConn);
+            await createDbCmd.ExecuteNonQueryAsync();
+            Console.WriteLine("Database EventStore created or already exists");
+            
+            // Now connect to EventStore database
             await using var conn = new SqlConnection(connStr);
             await conn.OpenAsync();
             Console.WriteLine("Database connection successful");

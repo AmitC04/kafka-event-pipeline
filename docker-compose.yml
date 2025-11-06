@@ -28,13 +28,33 @@ services:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
-      SA_PASSWORD: "YourStrong@Passw0rd"
+      SA_PASSWORD: "Amittest@123"
       MSSQL_PID: "Developer"
     ports:
       - "1433:1433"
     volumes:
-      - sqldata:/var/opt/mssql
+      - sqldata:/var/opt/mssql 
+       - ./init-db:/init-db
 
+  ssql-tools:
+    image: mcr.microsoft.com/mssql-tools
+    depends_on:
+      - sqlserver
+    volumes:
+      - ./init-db:/init-db
+    entrypoint:
+      - /bin/bash
+      - -c
+      - |
+        echo "Waiting for SQL Server to start..."
+        for i in {1..30}; do
+          /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P "Amittest@123" -Q "SELECT 1" && break
+          echo "SQL Server not ready yet... retrying in 5 seconds"
+          sleep 5
+        done
+        echo "Running schema script..."
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P "Amittest@123" -i /init-db/schema.sql 
+    tty: true
   redis:
     image: redis:7-alpine
     ports:
@@ -60,7 +80,7 @@ services:
       - redis
     environment:
       KAFKA_BROKER: "kafka:29092"
-      SQL_CONNECTION: "Server=sqlserver;Database=EventStore;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True"
+      SQL_CONNECTION: "Server=sqlserver;Database=EventStore;User Id=sa;Password=Amittest@123;TrustServerCertificate=True"
       REDIS_CONNECTION: "redis:6379"
     restart: on-failure
 
@@ -73,7 +93,8 @@ services:
     ports:
       - "5000:8080"
     environment:
-      SQL_CONNECTION: "Server=sqlserver;Database=EventStore;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True"
+      SQL_CONNECTION: "Server=sqlserver;Database=EventStore;User Id=sa;Password=Amittest@123;TrustServerCertificate=True"
+      ASPNETCORE_URLS: "http://0.0.0.0:8080"
 
 volumes:
   sqldata:

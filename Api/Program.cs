@@ -9,8 +9,7 @@ var app = builder.Build();
 var sqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION") 
     ?? "Server=localhost;Database=EventStore;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True";
 
-// Wait for database
-await Task.Delay(15000);
+app.MapGet("/", () => Results.Ok(new { message = "API is running" }));
 
 app.MapGet("/users/{id}", async (string id) =>
 {
